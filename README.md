@@ -17,8 +17,8 @@ In Terminal(MacOS) or Window Console, the script will run by simply typing pytho
 python rolldice_demo.py.
 
 Tested On
- 1. macOS 12.4 with the Python version 3.10.0 and Visual Studio Code
- 2. Windows 11 Pro with the Python version 3.10.0 and Visual Studio Code
+1. macOS 12.4 with the Python version 3.10.0 and Visual Studio Code
+2. Windows 11 Pro with the Python version 3.10.0 and Visual Studio Code
  
 Unit Test
 This script has implemented unitTest.
