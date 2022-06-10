@@ -164,24 +164,20 @@ class RollDice():
         return base_points
 
     def calc_bonus(self, chunk):
-        same_num_flg = True
         for i in range(1, len(chunk)):
             if chunk[i] != chunk[0]:
-                same_num_flg = False
                 break
-        if same_num_flg:
+        else:
             '''bonus rule'''
             if chunk[0] == self.current_round:
                 return True
         return False
 
     def calc_mini_bonus(self, chunk):
-        same_num_flg = True
         for i in range(1, len(chunk)):
             if chunk[i] != chunk[0]:
-                same_num_flg = False
                 break
-        if same_num_flg:
+        else:
             '''mini bonus rule'''
             if chunk[0] != self.current_round:
                 return True
