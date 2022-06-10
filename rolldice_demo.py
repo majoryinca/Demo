@@ -23,20 +23,19 @@ class RollDice():
     def gaming(self, seq):
         self.seq = seq
         for chunk_id in range(len(self.seq)):
-            self.run_single_turn(chunk_id)
-            if self.current_round > self.max_round:
+            to_next_round = self.calc_single_roll(chunk_id)
+            tie_breaker_check = True if  (self.current_round > self.max_round) and to_next_round else False
+            if tie_breaker_check or (chunk_id == len(self.seq) - 1):
                 if self.calc_winner():
                     break
-                else:
-                    tie_broken, to_the_end = self.run_tiebreaker()
-                    break
-        print(self.total_scores)
+        #print(self.total_scores)
         return self.total_scores
 
     '''If score no points, return False and this turn ends. Otherwise return True'''
 
-    def run_single_turn(self, chunk_id):
-        score_flg = self.calc_single_score(
+    def calc_single_roll(self, chunk_id):
+        to_next_round = False
+        score_flg = self.calc_chunk_score(
             self.seq[chunk_id])
         if self.get_temp_mini_bonus() > 0 and score_flg:
             self.set_mini_bonus()
@@ -47,7 +46,7 @@ class RollDice():
         self.clear_temp_bonus()
 
         # set temporary bonus score
-        self.set_single_temp_bonus_score(
+        self.set_temp_bonus_score(
             self.seq[chunk_id])
 
         if not score_flg:
@@ -63,25 +62,8 @@ class RollDice():
                 # print("\n")
 
                 self.current_round += 1
-
-    def run_tiebreaker(self):
-        tie_broken = False
-        to_the_end = False
-        addition_seq = self.seq[self.players * self.max_round:]
-        start_point = 0
-        while not tie_broken and not to_the_end:
-            single_turn_chunks = [addition_seq[j:(
-                j + self.players)] for j in range(start_point, len(addition_seq), self.players)]
-            # one more round
-            for chunk_id in range(len(single_turn_chunks)):
-                self.run_single_turn(self.players * self.max_round + chunk_id)
-            if self.calc_winner():
-                tie_broken = True
-            else:
-                start_point += self.players
-                if start_point >= len(addition_seq):
-                    to_the_end = True
-        return tie_broken, to_the_end
+                to_next_round = True
+        return to_next_round
 
     def calc_winner(self):
         if self.find_single_max_exists(self.total_scores):
@@ -95,9 +77,9 @@ class RollDice():
 
     '''implement Turn Scoring Rules'''
 
-    def calc_single_score(self, chunk):
+    def calc_chunk_score(self, chunk):
         base_score_flg = False
-        temp_bonus_flg = self.check_single_temp_bonus_score(
+        temp_bonus_flg = self.check_temp_bonus_score(
             chunk)
         if not temp_bonus_flg:
             base_points = self.calc_basepoint(chunk)
@@ -109,7 +91,7 @@ class RollDice():
 
     '''implement the * of a kind Turn Scoring Rules'''
 
-    def check_single_temp_bonus_score(self, chunk):
+    def check_temp_bonus_score(self, chunk):
         temp_bonus_flg = False
         if self.calc_bonus(chunk):
             temp_bonus_flg = True
@@ -117,7 +99,7 @@ class RollDice():
             temp_bonus_flg = True
         return temp_bonus_flg
 
-    def set_single_temp_bonus_score(self, chunk):
+    def set_temp_bonus_score(self, chunk):
         if self.calc_bonus(chunk):
             self.temp_bonus[self.current_player] += BONUS_POINTS
         if self.calc_mini_bonus(chunk):
@@ -193,7 +175,6 @@ class TestGame(unittest.TestCase):
         sample_input = [
             [1, 1, 3], [4, 2, 1], [6, 6, 2],
             [2, 1, 6], [5, 4, 1], [3, 3, 3], [3, 4, 5],
-
             [4, 5, 2], [2, 2, 2], [4, 4, 4], [6, 3, 5],
             [4, 1, 3]
         ]
@@ -204,18 +185,28 @@ class TestGame(unittest.TestCase):
     def test_tiebreaker_sample(self):
         game_instance = RollDice(1)
         sample_input = [
-            [2, 2, 3], [2, 2, 3], [2, 1, 1]
+            [2, 2, 3], [2, 2, 3], 
+            [2, 1, 1],[1, 3, 3], [2, 1, 1], [1, 3, 3]
+        ]
+
+        output = game_instance.gaming(sample_input)
+        self.assertEqual(output, [1, 1], str(output))
+
+    def test_tiebreaker_2_sample(self):
+        game_instance = RollDice(1)
+        sample_input = [
+            [2, 2, 3], [2, 2, 3], 
+            [2, 1, 1]
         ]
 
         output = game_instance.gaming(sample_input)
         self.assertEqual(output, [1, 0], str(output))
-
+    
     def test_over_rounds_sample(self):
         game_instance = RollDice(8)
         sample_input = [
             [1, 1, 3], [4, 2, 1], [6, 6, 2],
             [2, 1, 6], [5, 4, 1], [3, 3, 3], [3, 4, 5],
-
             [4, 5, 2], [2, 2, 2], [4, 4, 4], [6, 3, 5],
             [4, 1, 3]
         ]
@@ -228,7 +219,6 @@ class TestGame(unittest.TestCase):
         sample_input = [
             [1, 1], [4, 1], [6,  2],
             [2,  6], [5,  1], [3, 3], [3, 5],
-
             [4, 2], [2, 2], [4, 4], [6, 5],
             [4, 3]
         ]
